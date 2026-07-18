@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preparador Winmaker</title>
+  <meta name="description" content="Preparación y revisión de materiales desde órdenes de producción Winmaker.">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Inicio">
+      <img class="brand-logo" src="/static/divanni-logo.png" alt="DIVANNI Carpintería de Aluminio">
+      <span><strong>Preparador</strong><small>Materiales Winmaker</small></span>
+    </a>
+    <div id="order-context" class="order-context"></div>
+  </header>
+
+  <main>
+    <section id="home-view" class="view">
+      <div class="intro">
+        <p class="eyebrow">Herramienta interna de producción</p>
+        <h1>Del PDF al pedido de pañol, con control humano.</h1>
+        <p>Cargá la orden original de Winmaker. El sistema extrae vidrios y accesorios para que revises cada tipología antes de generar los listados.</p>
+      </div>
+
+      <div class="home-grid">
+        <form id="upload-form" class="panel upload-panel">
+          <div>
+            <span class="step">Nueva orden</span>
+            <h2>Cargar Orden de Producción</h2>
+          </div>
+          <label>
+            Cliente
+            <input id="client-name" name="client_name" type="text" required maxlength="250" placeholder="Ej. Sebastián Solsona" autocomplete="off">
+          </label>
+          <label class="file-drop" id="file-drop">
+            <input id="pdf-file" name="pdf" type="file" accept=".pdf,application/pdf" required>
+            <span class="file-icon">PDF</span>
+            <strong id="file-label">Seleccionar PDF de Winmaker</strong>
+            <small>Solo archivos digitales originales. No admite escaneos.</small>
+          </label>
+          <button class="button primary" type="submit">Analizar orden</button>
+          <p id="upload-message" class="form-message" role="alert"></p>
+        </form>
+
+        <section class="panel history-panel">
+          <div class="section-heading">
+            <div>
+              <span class="step">Historial</span>
+              <h2>Órdenes procesadas</h2>
+            </div>
+            <button id="refresh-orders" class="button ghost small" type="button">Actualizar</button>
+          </div>
+          <div id="orders-list" class="orders-list">
+            <p class="empty">Todavía no hay órdenes procesadas.</p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="review-view" class="view hidden">
+      <div class="review-shell">
+        <aside class="typology-nav panel">
+          <div>
+            <p class="eyebrow">Progreso de revisión</p>
+            <div class="progress-line"><span id="progress-text">0 de 0</span><span id="progress-percent">0%</span></div>
+            <div class="progress-track"><i id="progress-bar"></i></div>
+          </div>
+          <nav id="typology-list" aria-label="Tipologías"></nav>
+          <button id="back-home" class="button ghost" type="button">Volver al historial</button>
+        </aside>
+
+        <div class="review-content">
+          <div class="review-topline">
+            <div>
+              <p class="eyebrow">Revisión de tipología</p>
+              <h1 id="typology-title">—</h1>
+            </div>
+            <div class="review-actions">
+              <button id="view-results" class="button secondary" type="button">Ver resultados</button>
+              <button id="finalize-order" class="button primary" type="button">Finalizar orden</button>
+            </div>
+          </div>
+
+          <div id="typology-warning"></div>
+
+          <section class="fact-grid panel">
+            <div><span>Página</span><strong id="fact-page">—</strong></div>
+            <div><span>Detalle</span><strong id="fact-detail">—</strong></div>
+            <div><span>Cantidad</span><strong id="fact-quantity">—</strong></div>
+            <div><span>Estado</span><strong id="fact-status">—</strong></div>
+          </section>
+
+          <section class="table-section panel">
+            <div class="section-heading">
+              <div><span class="step">Editable</span><h2>Vidrios y telas</h2></div>
+              <div class="section-tools"><span id="glass-count" class="count-pill">0 filas</span><button id="open-add-glass" class="button secondary small" type="button">Agregar elemento</button></div>
+            </div>
+            <div class="table-wrap">
+              <table class="material-table">
+                <thead><tr><th>Estado</th><th>Tipo</th><th>Cantidad</th><th>Medida</th><th>Detalle</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+                <tbody id="glass-rows"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="table-section panel">
+            <div class="section-heading">
+              <div><span class="step">Editable</span><h2>Accesorios</h2></div>
+              <button id="open-add-accessory" class="button secondary small" type="button">Agregar accesorio</button>
+            </div>
+            <div class="table-wrap">
+              <table class="accessory-table">
+                <thead><tr><th>Estado</th><th>Código</th><th>Cantidad</th><th>Detalle</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+                <tbody id="accessory-rows"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <div class="pagination">
+            <button id="previous-typology" class="button ghost" type="button">Anterior</button>
+            <button id="confirm-typology" class="button primary" type="button">Confirmar tipología</button>
+            <button id="next-typology" class="button ghost" type="button">Siguiente</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="results-view" class="view hidden">
+      <div class="results-head">
+        <div>
+          <p class="eyebrow">Resultado final</p>
+          <h1 id="results-title">Listado de Vidrios</h1>
+          <p id="results-client"></p>
+        </div>
+        <div class="review-actions">
+          <button id="back-review" class="button ghost" type="button">Volver a revisión</button>
+          <a id="export-xlsx" class="button secondary">Exportar Excel</a>
+          <a id="export-pdf" class="button secondary">Exportar PDF</a>
+        </div>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="glasses" role="tab">Vidrios</button>
+        <button class="tab" data-tab="accessories" role="tab">Accesorios</button>
+        <button class="tab" data-tab="audit" role="tab">Trazabilidad</button>
+      </div>
+      <section id="glasses-tab" class="panel result-panel">
+        <div class="section-heading"><h2>Listado de vidrios</h2><a id="export-glasses-csv" class="button ghost small">CSV</a></div>
+        <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Tipología</th><th>Detalle abertura</th><th>Tipo</th><th>Cantidad</th><th>Medida</th><th>Descripción</th><th>Observaciones</th></tr></thead><tbody id="result-glasses"></tbody></table></div>
+      </section>
+      <section id="accessories-tab" class="panel result-panel hidden">
+        <div class="section-heading"><h2>Accesorios consolidados</h2><a id="export-accessories-csv" class="button ghost small">CSV</a></div>
+        <div id="conflict-banner"></div>
+        <div class="table-wrap"><table><thead><tr><th>Código</th><th>Cantidad total</th><th>Detalle</th><th>Origen</th><th>Observaciones</th></tr></thead><tbody id="result-accessories"></tbody></table></div>
+      </section>
+      <section id="audit-tab" class="panel result-panel hidden">
+        <div class="section-heading"><h2>Historial de modificaciones</h2></div>
+        <div id="audit-list" class="audit-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="accessory-dialog">
+    <form id="add-accessory-form" method="dialog">
+      <div class="dialog-head"><div><span class="step">Nuevo registro</span><h2>Agregar accesorio</h2></div><button class="icon-button" value="cancel" aria-label="Cerrar">×</button></div>
+      <label>Código<input name="code" required maxlength="80" autocomplete="off"></label>
+      <label>Cantidad<input name="quantity" type="number" min="0" step="any" required></label>
+      <label>Detalle<textarea name="detail" required maxlength="500" rows="3"></textarea></label>
+      <label>Observaciones<textarea name="observations" maxlength="1000" rows="2" placeholder="Opcional"></textarea></label>
+      <div class="dialog-actions"><button class="button ghost" value="cancel">Cancelar</button><button class="button primary" id="save-accessory" value="default">Agregar</button></div>
+    </form>
+  </dialog>
+  <dialog id="glass-dialog">
+    <form id="add-glass-form" method="dialog">
+      <div class="dialog-head"><div><span class="step">Nuevo registro</span><h2>Agregar vidrio o tela</h2></div><button class="icon-button" value="cancel" aria-label="Cerrar">×</button></div>
+      <label>Tipo<select name="material_type" required><option value="glass">Vidrio</option><option value="mesh">Tela mosquitera</option></select></label>
+      <div class="field-pair"><label>Cantidad<input name="quantity" type="number" min="0" step="any" required></label><label>Medida<input name="measure" required placeholder="430 x 682"></label></div>
+      <label>Descripción<textarea name="description" required maxlength="500" rows="3"></textarea></label>
+      <label>Observaciones<textarea name="observations" maxlength="1000" rows="2" placeholder="Opcional"></textarea></label>
+      <div class="dialog-actions"><button class="button ghost" value="cancel">Cancelar</button><button class="button primary" value="default">Agregar</button></div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
